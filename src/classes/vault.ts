@@ -143,7 +143,9 @@ const FullBPSDecimal = new Decimal(10000);
 import {
   FarmConfigOption,
   FarmIncentives,
-  FarmState,
+  type FarmState,
+  fetchMaybeFarmState,
+  fetchAllMaybeFarmState,
   getFarmIncentivesWithExistentState,
   getUserStatePDA,
   scaleDownWads,
@@ -310,8 +312,8 @@ export class KaminoVaultClient {
     if (vaultState.vaultFarm === DEFAULT_PUBLIC_KEY) {
       result.errors.push('Vault farm is not set');
     } else {
-      const farmState = await FarmState.fetch(this._rpc, vaultState.vaultFarm);
-      if (!farmState) {
+      const farmAccount = await fetchMaybeFarmState(this._rpc, vaultState.vaultFarm);
+      if (!farmAccount.exists) {
         result.errors.push(`Vault farm ${vaultState.vaultFarm} could not be fetched (invalid or does not exist)`);
       }
     }
@@ -320,13 +322,13 @@ export class KaminoVaultClient {
     if (vaultState.firstLossCapitalFarm === DEFAULT_PUBLIC_KEY) {
       result.warnings.push('First loss capital farm is not set');
     } else {
-      const flcFarmState = await FarmState.fetch(this._rpc, vaultState.firstLossCapitalFarm);
-      if (!flcFarmState) {
+      const flcFarmAccount = await fetchMaybeFarmState(this._rpc, vaultState.firstLossCapitalFarm);
+      if (!flcFarmAccount.exists) {
         result.warnings.push(
           `First loss capital farm ${vaultState.firstLossCapitalFarm} could not be fetched (invalid or does not exist)`
         );
       } else {
-        if (!(await this.isFlcFarmValid(flcFarmState, vaultState))) {
+        if (!(await this.isFlcFarmValid(flcFarmAccount.data, vaultState))) {
           result.warnings.push(`First loss capital farm ${vaultState.firstLossCapitalFarm} is not valid`);
         }
       }
@@ -712,7 +714,7 @@ export class KaminoVaultClient {
       signer,
       farm.address,
       DEFAULT_PUBLIC_KEY,
-      new FarmConfigOption.UpdatePendingFarmAdmin(),
+      FarmConfigOption.UpdatePendingFarmAdmin,
       FARMS_ADMIN_MAINNET,
       undefined,
       undefined,
@@ -722,7 +724,7 @@ export class KaminoVaultClient {
       signer,
       farm.address,
       DEFAULT_PUBLIC_KEY,
-      new FarmConfigOption.UpdateVaultId(),
+      FarmConfigOption.UpdateVaultId,
       vaultAddress,
       undefined,
       undefined,
@@ -1171,14 +1173,16 @@ export class KaminoVaultClient {
         const keysToAddToLUT = [address(value)];
         // if the farm already exist we want to read its state to add it to the LUT
         try {
-          const farmState = await FarmState.fetch(this.getConnection(), keysToAddToLUT[0], this._farmsProgramId);
-          keysToAddToLUT.push(
-            farmState!.farmVault,
-            farmState!.farmVaultsAuthority,
-            farmState!.token.mint,
-            farmState!.scopePrices,
-            farmState!.globalConfig
-          );
+          const farmAccount = await fetchMaybeFarmState(this.getConnection(), keysToAddToLUT[0]);
+          if (farmAccount.exists) {
+            keysToAddToLUT.push(
+              farmAccount.data.farmVault,
+              farmAccount.data.farmVaultsAuthority,
+              farmAccount.data.token.mint,
+              farmAccount.data.scopePrices,
+              farmAccount.data.globalConfig
+            );
+          }
           const insertIntoLutIxs = await insertIntoLookupTableIxs(
             this.getConnection(),
             lutIxsSignerAccount,
@@ -1591,13 +1595,13 @@ export class KaminoVaultClient {
       if (farmAddress === DEFAULT_PUBLIC_KEY) {
         return;
       }
-      const farmState = await FarmState.fetch(this.getConnection(), farmAddress, this._farmsProgramId);
-      if (!farmState) {
+      const farmAccount = await fetchMaybeFarmState(this.getConnection(), farmAddress);
+      if (!farmAccount.exists) {
         throw new Error(`Farm ${farmAddress.toString()} not found for FirstLossCapitalFarm`);
       }
       if (
         mode.kind === new VaultConfigField.FirstLossCapitalFarm().kind &&
-        !(await this.isFlcFarmValid(farmState, vaultState))
+        !(await this.isFlcFarmValid(farmAccount.data, vaultState))
       ) {
         throw new Error(`Farm ${farmAddress.toString()} is not valid for FirstLossCapitalFarm`);
       }
@@ -1913,13 +1917,9 @@ export class KaminoVaultClient {
     let vaultFarmState = farmState;
     const vaultState = await vault.getState();
     if (!farmState && (await vault.hasFarm(vaultState))) {
-      const vaultFarmStateResult = await FarmState.fetch(
-        this.getConnection(),
-        vaultState.vaultFarm,
-        this._farmsProgramId
-      );
-      if (vaultFarmStateResult) {
-        vaultFarmState = vaultFarmStateResult;
+      const vaultFarmAccount = await fetchMaybeFarmState(this.getConnection(), vaultState.vaultFarm);
+      if (vaultFarmAccount.exists) {
+        vaultFarmState = vaultFarmAccount.data;
       }
     }
     return this.buildShareEntryIxs('deposit', user, vault, tokenAmount, vaultReservesMap, vaultFarmState, payer, memo);
@@ -2205,13 +2205,9 @@ export class KaminoVaultClient {
     if (hasFarm) {
       let vaultFarmState = farmState;
       if (!vaultFarmState) {
-        const vaultFarmStateResult = await FarmState.fetch(
-          this.getConnection(),
-          vaultState.vaultFarm,
-          this._farmsProgramId
-        );
-        if (vaultFarmStateResult) {
-          vaultFarmState = vaultFarmStateResult;
+        const vaultFarmAccount = await fetchMaybeFarmState(this.getConnection(), vaultState.vaultFarm);
+        if (vaultFarmAccount.exists) {
+          vaultFarmState = vaultFarmAccount.data;
         }
       }
       const unstakeIxs = await getFarmUnstakeAndWithdrawIxs(
@@ -2315,13 +2311,9 @@ export class KaminoVaultClient {
     let vaultFarmState = farmState;
     const vaultState = await vault.getState();
     if (!farmState && (await vault.hasFarm(vaultState))) {
-      const vaultFarmStateResult = await FarmState.fetch(
-        this.getConnection(),
-        vaultState.vaultFarm,
-        this._farmsProgramId
-      );
-      if (vaultFarmStateResult) {
-        vaultFarmState = vaultFarmStateResult;
+      const vaultFarmAccount = await fetchMaybeFarmState(this.getConnection(), vaultState.vaultFarm);
+      if (vaultFarmAccount.exists) {
+        vaultFarmState = vaultFarmAccount.data;
       }
     }
     return this.buildShareExitIxs(
@@ -4957,13 +4949,9 @@ export class KaminoVaultClient {
       };
     }
     const kFarmsClient = farmsClient ? farmsClient : new Farms(this.getConnection(), this._farmsProgramId);
-    const farmState = await FarmState.fetch(
-      kFarmsClient.getConnection(),
-      vaultState.vaultFarm,
-      kFarmsClient.getProgramID()
-    );
+    const vaultFarmAccount = await fetchMaybeFarmState(kFarmsClient.getConnection(), vaultState.vaultFarm);
 
-    if (!farmState) {
+    if (!vaultFarmAccount.exists) {
       // a vault may have a badly configured farm that does not exist on chain but isn't set as a default pubkey by mistake
       return {
         incentivesStats: [],
@@ -4978,7 +4966,7 @@ export class KaminoVaultClient {
     return getFarmIncentivesWithExistentState(
       kFarmsClient,
       vaultState.vaultFarm,
-      farmState,
+      vaultFarmAccount.data,
       sharePrice,
       stakedTokenMintDecimals,
       tokensPrices
@@ -5015,9 +5003,9 @@ export class KaminoVaultClient {
     const stakedTokenMintDecimals = vaultState.sharesMintDecimals.toNumber();
 
     const kFarmsClient = farmsClient ? farmsClient : new Farms(this.getConnection(), this._farmsProgramId);
-    const farmState = await FarmState.fetch(kFarmsClient.getConnection(), delegatedFarm, kFarmsClient.getProgramID());
+    const delegatedFarmAccount = await fetchMaybeFarmState(kFarmsClient.getConnection(), delegatedFarm);
 
-    if (!farmState) {
+    if (!delegatedFarmAccount.exists) {
       // a vault may have a badly configured farm that does not exist on chain but isn't set as a default pubkey by mistake
       return {
         incentivesStats: [],
@@ -5027,7 +5015,7 @@ export class KaminoVaultClient {
     return getFarmIncentivesWithExistentState(
       kFarmsClient,
       delegatedFarm,
-      farmState,
+      delegatedFarmAccount.data,
       sharePrice,
       stakedTokenMintDecimals,
       tokensPrices
@@ -5065,7 +5053,7 @@ export class KaminoVaultClient {
           const farmState = kFarmsMap.get(farmAddress)!;
           farmState.rewardInfos.forEach((rewardInfo) => {
             if (rewardInfo.token.mint !== DEFAULT_PUBLIC_KEY) {
-              vaultsTokenMints.set(rewardInfo.token.mint, rewardInfo.token.decimals.toNumber());
+              vaultsTokenMints.set(rewardInfo.token.mint, Number(rewardInfo.token.decimals));
             }
           });
         }
@@ -5087,7 +5075,7 @@ export class KaminoVaultClient {
               const farmState = kFarmsMap.get(supplyFarm)!;
               farmState.rewardInfos.forEach((rewardInfo) => {
                 if (rewardInfo.token.mint !== DEFAULT_PUBLIC_KEY) {
-                  vaultsTokenMints.set(rewardInfo.token.mint, rewardInfo.token.decimals.toNumber());
+                  vaultsTokenMints.set(rewardInfo.token.mint, Number(rewardInfo.token.decimals));
                 }
               });
             }
@@ -5111,7 +5099,7 @@ export class KaminoVaultClient {
             const farmState = kFarmsMap.get(supplyFarm)!;
             farmState.rewardInfos.forEach((rewardInfo) => {
               if (rewardInfo.token.mint !== DEFAULT_PUBLIC_KEY) {
-                vaultsTokenMints.set(rewardInfo.token.mint, rewardInfo.token.decimals.toNumber());
+                vaultsTokenMints.set(rewardInfo.token.mint, Number(rewardInfo.token.decimals));
               }
             });
           }
@@ -5120,16 +5108,15 @@ export class KaminoVaultClient {
     });
 
     // fetch the missing farms
-    const missingFarmsStates = await FarmState.fetchMultiple(
+    const missingFarmsStates = await fetchAllMaybeFarmState(
       this.getConnection(),
-      Array.from(farmsToFetch),
-      this._farmsProgramId
+      Array.from(farmsToFetch)
     );
-    missingFarmsStates.forEach((farmState) => {
-      if (farmState) {
-        farmState.rewardInfos.forEach((rewardInfo) => {
+    missingFarmsStates.forEach((farmAccount) => {
+      if (farmAccount.exists) {
+        farmAccount.data.rewardInfos.forEach((rewardInfo) => {
           if (rewardInfo.token.mint !== DEFAULT_PUBLIC_KEY) {
-            vaultsTokenMints.set(rewardInfo.token.mint, rewardInfo.token.decimals.toNumber());
+            vaultsTokenMints.set(rewardInfo.token.mint, Number(rewardInfo.token.decimals));
           }
         });
       }
@@ -5211,15 +5198,15 @@ export class KaminoVaultClient {
 
     const kFarmsClient = new Farms(this.getConnection(), this._farmsProgramId);
 
-    const flcFarmState = await FarmState.fetch(
+    const flcFarmAccount = await fetchMaybeFarmState(
       this.getConnection(),
-      vaultState.firstLossCapitalFarm,
-      this._farmsProgramId
+      vaultState.firstLossCapitalFarm
     );
 
-    if (!flcFarmState) {
+    if (!flcFarmAccount.exists) {
       return undefined;
     }
+    const flcFarmState = flcFarmAccount.data;
 
     if (!(await this.isFlcFarmValid(flcFarmState, vaultState))) {
       return undefined;
@@ -5234,7 +5221,7 @@ export class KaminoVaultClient {
         pendingUnstakes.push({
           userStateAddress: key,
           pendingUnstakeAmountLamports: pendingWithdrawalUnstake,
-          pendingUnstakeAvailableAtTimestamp: userState.pendingWithdrawalUnstakeTs.toNumber(),
+          pendingUnstakeAvailableAtTimestamp: Number(userState.pendingWithdrawalUnstakeTs),
         });
       }
     }

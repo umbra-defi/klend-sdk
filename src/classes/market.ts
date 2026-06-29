@@ -45,7 +45,7 @@ import {
 } from '../utils';
 import BN from 'bn.js';
 import Decimal from 'decimal.js';
-import { FarmState } from '@kamino-finance/farms-sdk';
+import { fetchMaybeFarmState } from '@kamino-finance/farms-sdk';
 import { PROGRAM_ID } from '../@codegen/klend/programId';
 import { Scope, U16_MAX } from '@kamino-finance/scope-sdk';
 import { OraclePrices } from '@kamino-finance/scope-sdk/dist/@codegen/scope/accounts/OraclePrices';
@@ -687,26 +687,27 @@ export class KaminoMarket {
     totalInvestmentUsd: Decimal,
     getRewardPrice: (mint: Address) => Promise<number>
   ): Promise<ReserveRewardInfo> {
-    const farmState = await FarmState.fetch(this.getRpc(), farmAddress, this.farmsProgramId);
-    if (!farmState) {
+    const farmAccount = await fetchMaybeFarmState(this.getRpc(), farmAddress);
+    if (!farmAccount.exists) {
       throw Error(`Could not parse farm state. ${farmAddress}`);
     }
+    const farmState = farmAccount.data;
     const { token, rewardsAvailable, rewardScheduleCurve } = farmState.rewardInfos[0];
     // TODO: marius fix
-    const rewardPerSecondLamports = rewardScheduleCurve.points[0].rewardPerTimeUnit.toNumber();
+    const rewardPerSecondLamports = Number(rewardScheduleCurve.points[0].rewardPerTimeUnit);
     const { mint, decimals: rewardDecimals } = token;
     const rewardPriceUsd = await getRewardPrice(mint);
     const rewardApr = this.calculateRewardAPR(
       rewardPerSecondLamports,
       rewardPriceUsd,
       totalInvestmentUsd,
-      rewardDecimals.toNumber()
+      Number(rewardDecimals)
     );
 
     return {
-      rewardsPerSecond: new Decimal(rewardPerSecondLamports).dividedBy(10 ** rewardDecimals.toNumber()),
-      rewardsRemaining: new Decimal(rewardsAvailable.toNumber()).dividedBy(10 ** rewardDecimals.toNumber()),
-      rewardApr: rewardsAvailable.toNumber() > 0 ? rewardApr : new Decimal(0),
+      rewardsPerSecond: new Decimal(rewardPerSecondLamports).dividedBy(10 ** Number(rewardDecimals)),
+      rewardsRemaining: new Decimal(Number(rewardsAvailable)).dividedBy(10 ** Number(rewardDecimals)),
+      rewardApr: rewardsAvailable > 0n ? rewardApr : new Decimal(0),
       rewardMint: mint,
       totalInvestmentUsd,
       rewardPrice: rewardPriceUsd,

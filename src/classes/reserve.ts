@@ -55,7 +55,7 @@ import {
   UpdateReserveConfigArgs,
 } from '../lib';
 import { aprToApy, KaminoPrices } from '../utils/compat';
-import { FarmAndKey, FarmState, RewardInfo } from '@kamino-finance/farms-sdk';
+import { FarmAndKey, type FarmState, RewardInfo, fetchMaybeFarmState } from '@kamino-finance/farms-sdk';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { maxBigInt } from '../utils/bigint';
 import { getCreateAccountInstruction, SYSTEM_PROGRAM_ADDRESS } from '@solana-program/system';
@@ -827,16 +827,16 @@ export class KaminoReserve {
       const farmStates: FarmAndKey[] = [];
       const debtFarmAddress = this.getDebtFarmAddress();
       if (isSome(debtFarmAddress)) {
-        const farmState = await FarmState.fetch(this.rpc, debtFarmAddress.value, farmsProgramId);
-        if (farmState !== null) {
-          farmStates.push({ farmState, key: debtFarmAddress.value });
+        const farmAccount = await fetchMaybeFarmState(this.rpc, debtFarmAddress.value);
+        if (farmAccount.exists) {
+          farmStates.push({ farmState: farmAccount.data, key: debtFarmAddress.value });
         }
       }
       const collateralFarmAddress = this.getCollateralFarmAddress();
       if (isSome(collateralFarmAddress)) {
-        const farmState = await FarmState.fetch(this.rpc, collateralFarmAddress.value, farmsProgramId);
-        if (farmState !== null) {
-          farmStates.push({ farmState, key: collateralFarmAddress.value });
+        const farmAccount = await fetchMaybeFarmState(this.rpc, collateralFarmAddress.value);
+        if (farmAccount.exists) {
+          farmStates.push({ farmState: farmAccount.data, key: collateralFarmAddress.value });
         }
       }
       this.farmData.farms = farmStates;
@@ -855,7 +855,7 @@ export class KaminoReserve {
     for (const farmAndKey of this.farmData.farms) {
       const isDebtReward = this.state.farmDebt === farmAndKey.key;
       for (const rewardInfo of farmAndKey.farmState.rewardInfos.filter(
-        (x) => x.token.mint !== DEFAULT_PUBLIC_KEY && !x.rewardsAvailable.isZero()
+        (x) => x.token.mint !== DEFAULT_PUBLIC_KEY && x.rewardsAvailable !== 0n
       )) {
         const { apy, apr } = this.calculateRewardYield(
           prices,

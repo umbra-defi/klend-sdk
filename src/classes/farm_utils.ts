@@ -1,8 +1,10 @@
 import {
   Farms,
-  FarmState,
+  type FarmState,
+  fetchMaybeFarmState,
   getUserStatePDA,
-  UserState,
+  type UserState,
+  decodeUserState,
   FarmConfigOption,
   lamportsToCollDecimal,
   scaleDownWads,
@@ -37,9 +39,13 @@ export async function getFarmStakeIxs(
   fetchedFarmState?: FarmState,
   farmsProgramId?: Address
 ): Promise<Instruction[]> {
-  const farmState = fetchedFarmState ? fetchedFarmState : await FarmState.fetch(rpc, farmAddress, farmsProgramId);
+  let farmState = fetchedFarmState;
   if (!farmState) {
-    throw new Error(`Farm state not found for ${farmAddress}`);
+    const farmAccount = await fetchMaybeFarmState(rpc, farmAddress);
+    if (!farmAccount.exists) {
+      throw new Error(`Farm state not found for ${farmAddress}`);
+    }
+    farmState = farmAccount.data;
   }
 
   const farmClient = new Farms(rpc, farmsProgramId);
@@ -77,9 +83,13 @@ export async function getFarmUnstakeIx(
   fetchedFarmState?: FarmState,
   farmsProgramId?: Address
 ): Promise<Instruction> {
-  const farmState = fetchedFarmState ? fetchedFarmState : await FarmState.fetch(rpc, farmAddress, farmsProgramId);
+  let farmState = fetchedFarmState;
   if (!farmState) {
-    throw new Error(`Farm state not found for ${farmAddress}`);
+    const farmAccount = await fetchMaybeFarmState(rpc, farmAddress);
+    if (!farmAccount.exists) {
+      throw new Error(`Farm state not found for ${farmAddress}`);
+    }
+    farmState = farmAccount.data;
   }
 
   const farmClient = new Farms(rpc, farmsProgramId);
@@ -109,11 +119,13 @@ export async function getFarmUnstakeAndWithdrawIxs(
   fetchedFarmState?: FarmState,
   farmsProgramId?: Address
 ): Promise<UnstakeAndWithdrawFromFarmIxs> {
-  const farmState = fetchedFarmState
-    ? fetchedFarmState
-    : await FarmState.fetch(connection, farmAddress, farmsProgramId);
+  let farmState = fetchedFarmState;
   if (!farmState) {
-    throw new Error(`Farm state not found for ${farmAddress}`);
+    const farmAccount = await fetchMaybeFarmState(connection, farmAddress);
+    if (!farmAccount.exists) {
+      throw new Error(`Farm state not found for ${farmAddress}`);
+    }
+    farmState = farmAccount.data;
   }
 
   const unstakeIx = await getFarmUnstakeIx(connection, user, lamportsToUnstake, farmAddress, farmState, farmsProgramId);
@@ -184,7 +196,7 @@ export async function setVaultIdForFarmIx(
     farmAdmin,
     farm,
     DEFAULT_PUBLIC_KEY,
-    new FarmConfigOption.UpdateVaultId(),
+    FarmConfigOption.UpdateVaultId,
     vault
   );
 }
@@ -232,11 +244,11 @@ export function getRewardPerTimeUnitSecond(reward: RewardInfo, farmTotalStakeLam
     }
   }
 
-  const rewardTokenDecimals = reward.token.decimals.toNumber();
+  const rewardTokenDecimals = Number(reward.token.decimals);
   const rewardAmountPerUnitDecimals = new Decimal(10).pow(reward.rewardsPerSecondDecimals.toString());
   const rewardAmountPerUnitLamports = new Decimal(10).pow(rewardTokenDecimals.toString());
   const constantRewardStakeAdjustment =
-    reward.rewardType === RewardType.Constant.discriminator ? farmTotalStakeLamports : new Decimal(1);
+    reward.rewardType === RewardType.Constant ? farmTotalStakeLamports : new Decimal(1);
 
   const rpsAdjusted = new Decimal(rewardPerTimeUnitSecond.toString())
     .mul(constantRewardStakeAdjustment)
@@ -267,12 +279,13 @@ export async function getUserPendingRewardsInFarm(
   if (!userStateAccountInfo.exists) {
     return pendingRewardsPerToken;
   }
-  const userState = UserState.decode(Buffer.from(userStateAccountInfo.data));
+  const userState = decodeUserState(userStateAccountInfo).data;
 
-  const farmState = await FarmState.fetch(rpc, farm, farmsProgramId);
-  if (!farmState) {
+  const farmAccount = await fetchMaybeFarmState(rpc, farm);
+  if (!farmAccount.exists) {
     throw new Error(`Farm state not found for ${farm}`);
   }
+  const farmState = farmAccount.data;
 
   const currentTimestamp = new Decimal(new Date().getTime() / 1000);
   const rawRewards = farmClient.getUserPendingRewards(userState, farmState, currentTimestamp, null);
