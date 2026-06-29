@@ -1,15 +1,15 @@
 {
-  "name": "@kamino-finance/klend-sdk",
+  "name": "@umbra-privacy/klend-sdk",
   "version": "7.3.22",
   "description": "Typescript SDK for interacting with the Kamino Lending (klend) protocol",
   "repository": {
     "type": "git",
-    "url": "git+github.com:Kamino-Finance/klend-sdk.git"
+    "url": "git+https://github.com/umbra-defi/klend-sdk.git"
   },
-  "author": "Kamino Finance",
-  "homepage": "https://kamino.finance",
-  "bugs": {
-    "url": "https://github.com/Kamino-Finance/klend-sdk/issues"
+  "author": "Umbra Privacy",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   },
   "keywords": [
     "solana",
@@ -59,7 +59,6 @@
     "@coral-xyz/anchor": "^0.28.0",
     "@coral-xyz/borsh": "^0.28.0",
     "@kamino-finance/farms-sdk": "^3.2.24",
-    "@kamino-finance/kliquidity-sdk": "^8.5.9",
     "@kamino-finance/scope-sdk": "^10.1.0",
     "@solana-program/address-lookup-table": "^0.8.0",
     "@solana-program/system": "^0.8.0",
@@ -72,7 +71,6 @@
     "axios": "^1.6.8",
     "bn.js": "^5.2.1",
     "buffer": "^6.0.3",
-    "commander": "^9.3.0",
     "decimal.js": "^10.4.3",
     "exponential-backoff": "^3.1.1",
     "zstddec": "^0.1.0"
