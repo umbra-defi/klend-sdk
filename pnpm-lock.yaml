@@ -68,9 +68,9 @@ importers:
       exponential-backoff:
         specifier: ^3.1.1
         version: 3.1.3
-      zstddec:
-        specifier: ^0.1.0
-        version: 0.1.0
+      fzstd:
+        specifier: ^0.1.1
+        version: 0.1.1
     devDependencies:
       '@orca-so/sdk':
         specifier: ^1.2.25
@@ -4381,9 +4381,6 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
-
-  zstddec@0.1.0:
-    resolution: {integrity: sha512-w2NTI8+3l3eeltKAdK8QpiLo/flRAr2p8AGeakfMZOXBxOg9HIu4LVDxBi81sYgVhFhdJjv1OrB5ssI8uFPoLg==}
 
 snapshots:
 
@@ -9903,5 +9900,3 @@ snapshots:
   yn@3.1.1: {}
 
   yocto-queue@0.1.0: {}
-
-  zstddec@0.1.0: {}

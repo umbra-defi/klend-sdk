@@ -1,6 +1,6 @@
 {
   "name": "@umbra-privacy/klend-sdk",
-  "version": "7.3.24",
+  "version": "7.3.25",
   "description": "Typescript SDK for interacting with the Kamino Lending (klend) protocol",
   "repository": {
     "type": "git",
@@ -76,7 +76,7 @@
     "buffer": "^6.0.3",
     "decimal.js": "^10.4.3",
     "exponential-backoff": "^3.1.1",
-    "zstddec": "^0.1.0"
+    "fzstd": "^0.1.1"
   },
   "devDependencies": {
     "@orca-so/sdk": "^1.2.25",

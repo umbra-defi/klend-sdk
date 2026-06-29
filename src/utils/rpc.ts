@@ -9,18 +9,13 @@ import {
   Account,
 } from '@solana/kit';
 import { Buffer } from 'buffer';
-import { ZSTDDecoder } from 'zstddec';
+import { decompress } from 'fzstd';
 import type {
   AccountInfoBase,
   AccountInfoWithBase64EncodedZStdCompressedData,
   AccountInfoWithPubkey,
 } from '@solana/rpc-types';
 import { DataSlice } from '@solana/rpc-types/dist/types/account-filters';
-
-const decoder = new ZSTDDecoder();
-(async () => {
-  await decoder.init();
-})();
 
 /**
  * Uses zstd compression when fetching all accounts owned by a program for a smaller response size
@@ -62,7 +57,7 @@ async function deserializeAccountInfo(
   accountInfo: AccountInfoWithPubkey<AccountInfoBase & AccountInfoWithBase64EncodedZStdCompressedData>,
   size: number
 ): Promise<Account<Buffer>> {
-  const data = decoder.decode(Buffer.from(accountInfo.account.data[0], 'base64'), size);
+  const data = decompress(Buffer.from(accountInfo.account.data[0], 'base64'));
   return {
     programAddress: accountInfo.account.owner,
     lamports: accountInfo.account.lamports,
