@@ -5,7 +5,7 @@ import { OraclePrices } from '@kamino-finance/scope-sdk/dist/@codegen/scope/acco
 import { isNotNullPubkey } from './pubkey';
 import { parseTokenSymbol, ReserveWithAddress } from '../classes';
 import { Reserve } from '../lib';
-import { batchFetch } from '@kamino-finance/kliquidity-sdk';
+import { batchFetch } from './compat';
 import BN from 'bn.js';
 import { priceUpdateV2 } from '../@codegen/pyth_rec/accounts';
 import { AggregatorAccountData } from '../@codegen/switchboard_v2/accounts';

@@ -54,7 +54,7 @@ import {
   UpdateReserveConfigAccounts,
   UpdateReserveConfigArgs,
 } from '../lib';
-import { aprToApy, KaminoPrices } from '@kamino-finance/kliquidity-sdk';
+import { aprToApy, KaminoPrices } from '../utils/compat';
 import { FarmAndKey, FarmState, RewardInfo } from '@kamino-finance/farms-sdk';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { maxBigInt } from '../utils/bigint';

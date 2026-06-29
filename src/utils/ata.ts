@@ -16,7 +16,7 @@ import {
   TransactionSigner,
 } from '@solana/kit';
 import Decimal from 'decimal.js';
-import { collToLamportsDecimal, DECIMALS_SOL } from '@kamino-finance/kliquidity-sdk/dist';
+import { collToLamportsDecimal, DECIMALS_SOL } from './compat';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ADDRESS,

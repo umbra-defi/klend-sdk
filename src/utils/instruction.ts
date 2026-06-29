@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
 
 import { Address, Instruction, Rpc, GetMultipleAccountsApi, Account, isAddress } from '@solana/kit';
-import { batchFetch } from '@kamino-finance/kliquidity-sdk';
+import { batchFetch } from './compat';
 import { getSetComputeUnitLimitInstruction, getSetComputeUnitPriceInstruction } from '@solana-program/compute-budget';
 import { AddressLookupTable, fetchAllAddressLookupTable } from '@solana-program/address-lookup-table';
 import { COMPUTE_BUDGET_PROGRAM_ID } from './pubkey';

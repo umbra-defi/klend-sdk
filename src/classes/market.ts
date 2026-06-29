@@ -47,15 +47,17 @@ import BN from 'bn.js';
 import Decimal from 'decimal.js';
 import { FarmState } from '@kamino-finance/farms-sdk';
 import { PROGRAM_ID } from '../@codegen/klend/programId';
-import { PROGRAM_ID as FARMS_PROGRAM_ID } from '@kamino-finance/farms-sdk/dist/@codegen/farms/programId';
 import { Scope, U16_MAX } from '@kamino-finance/scope-sdk';
 import { OraclePrices } from '@kamino-finance/scope-sdk/dist/@codegen/scope/accounts/OraclePrices';
 import { Fraction } from './fraction';
-import { batchFetch, chunks, KaminoPrices, MintToPriceMap } from '@kamino-finance/kliquidity-sdk';
+import { batchFetch, chunks, KaminoPrices, MintToPriceMap } from '../utils/compat';
 import { parseTokenSymbol, parseZeroPaddedUtf8 } from './utils';
 import { ObligationZP } from '../@codegen/klend/zero_padding';
 import { checkDefined } from '../utils/validations';
 import { Buffer } from 'buffer';
+
+// farms-sdk 3.2.26+ dropped the programId re-export; hardcode the stable address instead
+const FARMS_PROGRAM_ID: Address = address('FarmsPZpWu9i7Kky8tPN37rs2TpmMrAZrC7S7vJa91Hr');
 import { fetchKaminoCdnData } from '../utils/readCdnData';
 
 export type KaminoMarketRpcApi = GetAccountInfoApi &

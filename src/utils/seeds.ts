@@ -1,8 +1,9 @@
 import { Address, address, getAddressEncoder, getProgramDerivedAddress, ProgramDerivedAddress } from '@solana/kit';
 import { PROGRAM_ID } from '../@codegen/klend/programId';
-import { PROGRAM_ID as FARMS_PROGRAM_ID } from '@kamino-finance/farms-sdk/dist/@codegen/farms/programId';
 import { METADATA_PROGRAM_ID, METADATA_SEED } from '../classes/vault';
 import { Buffer } from 'buffer';
+
+const FARMS_PROGRAM_ID: Address = address('FarmsPZpWu9i7Kky8tPN37rs2TpmMrAZrC7S7vJa91Hr');
 
 /**
  * Lending market authority seed

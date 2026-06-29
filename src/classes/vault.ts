@@ -136,10 +136,10 @@ import {
   WithdrawAndBlockReserveIxs,
   WithdrawIxs,
 } from './vault_types';
-import { batchFetch } from '@kamino-finance/kliquidity-sdk/dist/utils/batch';
-import { ZERO } from '@kamino-finance/kliquidity-sdk/dist/utils/math';
-import { collToLamportsDecimal } from '@kamino-finance/kliquidity-sdk/dist/utils/utils';
-import { FullBPSDecimal } from '@kamino-finance/kliquidity-sdk/dist/utils/CreationParameters';
+import { batchFetch, collToLamportsDecimal } from '../utils/compat';
+
+const ZERO = new Decimal(0);
+const FullBPSDecimal = new Decimal(10000);
 import {
   FarmConfigOption,
   FarmIncentives,
