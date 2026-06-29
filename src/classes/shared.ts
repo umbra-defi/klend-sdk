@@ -1,6 +1,7 @@
 import { Address } from '@solana/kit';
 import Decimal from 'decimal.js';
-import { FarmAndKey, RewardInfo } from '@kamino-finance/farms-sdk';
+import type { FarmAndKey } from '@kamino-finance/farms-sdk/dist/models/FarmAndKey';
+import { type RewardInfo } from '@kamino-finance/farms-sdk/dist/@codegen/farms/types/rewardInfo';
 
 export type ConfigType = Array<MarketConfigType>;
 

@@ -1,18 +1,10 @@
-import {
-  Farms,
-  type FarmState,
-  fetchMaybeFarmState,
-  getUserStatePDA,
-  type UserState,
-  decodeUserState,
-  FarmConfigOption,
-  lamportsToCollDecimal,
-  scaleDownWads,
-  WAD,
-  RewardInfo,
-  RewardType,
-  collToLamportsDecimal,
-} from '@kamino-finance/farms-sdk';
+import { Farms } from '@kamino-finance/farms-sdk/dist/Farms';
+import { type FarmState, fetchMaybeFarmState } from '@kamino-finance/farms-sdk/dist/@codegen/farms/accounts/farmState';
+import { type UserState, decodeUserState } from '@kamino-finance/farms-sdk/dist/@codegen/farms/accounts/userState';
+import { FarmConfigOption } from '@kamino-finance/farms-sdk/dist/@codegen/farms/types/farmConfigOption';
+import { type RewardInfo } from '@kamino-finance/farms-sdk/dist/@codegen/farms/types/rewardInfo';
+import { RewardType } from '@kamino-finance/farms-sdk/dist/@codegen/farms/types/rewardType';
+import { WAD, getUserStatePDA, collToLamportsDecimal, lamportsToCollDecimal, scaleDownWads } from '@kamino-finance/farms-sdk/dist/utils/utils';
 import {
   address,
   Address,

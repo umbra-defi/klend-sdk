@@ -140,16 +140,13 @@ import { batchFetch, collToLamportsDecimal } from '../utils/compat';
 
 const ZERO = new Decimal(0);
 const FullBPSDecimal = new Decimal(10000);
-import {
-  FarmConfigOption,
-  FarmIncentives,
-  type FarmState,
-  fetchMaybeFarmState,
-  fetchAllMaybeFarmState,
-  getFarmIncentivesWithExistentState,
-  getUserStatePDA,
-  scaleDownWads,
-} from '@kamino-finance/farms-sdk/dist';
+import { FarmConfigOption } from '@kamino-finance/farms-sdk/dist/@codegen/farms/types/farmConfigOption';
+import { type FarmIncentives } from '@kamino-finance/farms-sdk/dist/models/UserFarm';
+import { type FarmState, fetchMaybeFarmState, fetchAllMaybeFarmState } from '@kamino-finance/farms-sdk/dist/@codegen/farms/accounts/farmState';
+import { getUserStatePDA, scaleDownWads } from '@kamino-finance/farms-sdk/dist/utils/utils';
+import { getTokenPrice } from '@kamino-finance/farms-sdk/dist/utils/price';
+import { Farms } from '@kamino-finance/farms-sdk/dist/Farms';
+import { type UserState } from '@kamino-finance/farms-sdk/dist/@codegen/farms/accounts/userState';
 import { getAccountsInLut, initLookupTableIx, insertIntoLookupTableIxs } from '../utils';
 import {
   FARMS_ADMIN_MAINNET,
@@ -168,7 +165,6 @@ import { fetchMaybeToken, findAssociatedTokenPda, getCloseAccountInstruction } f
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { SYSVAR_INSTRUCTIONS_ADDRESS, SYSVAR_RENT_ADDRESS } from '@solana/sysvars';
 import { noopSigner } from '../utils/signer';
-import { Farms, UserState } from '@kamino-finance/farms-sdk';
 import { computeReservesAllocation } from '../utils/vaultAllocation';
 import { getReserveFarmRewardsAPY } from '../utils/farmUtils';
 import { fetchKaminoCdnData } from '../utils/readCdnData';
@@ -4963,10 +4959,9 @@ export class KaminoVaultClient {
     const sharePrice = tokensPerShare.mul(vaultTokenPrice);
     const stakedTokenMintDecimals = vaultState.sharesMintDecimals.toNumber();
 
-    return getFarmIncentivesWithExistentState(
-      kFarmsClient,
-      vaultState.vaultFarm,
-      vaultFarmAccount.data,
+    return kFarmsClient.calculateFarmIncentivesApy(
+      { farmState: vaultFarmAccount.data, key: vaultState.vaultFarm },
+      getTokenPrice,
       sharePrice,
       stakedTokenMintDecimals,
       tokensPrices
@@ -5012,10 +5007,9 @@ export class KaminoVaultClient {
         totalIncentivesApy: 0,
       };
     }
-    return getFarmIncentivesWithExistentState(
-      kFarmsClient,
-      delegatedFarm,
-      delegatedFarmAccount.data,
+    return kFarmsClient.calculateFarmIncentivesApy(
+      { farmState: delegatedFarmAccount.data, key: delegatedFarm },
+      getTokenPrice,
       sharePrice,
       stakedTokenMintDecimals,
       tokensPrices

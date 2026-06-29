@@ -1,8 +1,10 @@
 import { Address, Rpc, Slot, SolanaRpcApi } from '@solana/kit';
 import { Decimal } from 'decimal.js';
-import { FarmIncentives, Farms, fetchMaybeFarmState } from '@kamino-finance/farms-sdk';
+import { type FarmIncentives } from '@kamino-finance/farms-sdk/dist/models/UserFarm';
+import { Farms } from '@kamino-finance/farms-sdk/dist/Farms';
+import { fetchMaybeFarmState } from '@kamino-finance/farms-sdk/dist/@codegen/farms/accounts/farmState';
 import { getTokenPrice } from '@kamino-finance/farms-sdk/dist/utils/price';
-import { DEFAULT_PUBLIC_KEY } from '@kamino-finance/farms-sdk';
+import { DEFAULT_PUBLIC_KEY } from '@kamino-finance/farms-sdk/dist/utils/pubkey';
 
 async function getFarmIncentives(
   farmsClient: Farms,

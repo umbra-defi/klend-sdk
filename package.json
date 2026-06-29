@@ -1,6 +1,6 @@
 {
   "name": "@umbra-privacy/klend-sdk",
-  "version": "7.3.23",
+  "version": "7.3.24",
   "description": "Typescript SDK for interacting with the Kamino Lending (klend) protocol",
   "repository": {
     "type": "git",

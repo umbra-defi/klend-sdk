@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js';
 import { Address } from '@solana/kit';
-import { lamportsToCollDecimal } from '@kamino-finance/farms-sdk';
+import { lamportsToCollDecimal } from '@kamino-finance/farms-sdk/dist/utils/utils';
 
 export interface ReserveAllocationOverview {
   targetWeight: Decimal;

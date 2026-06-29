@@ -55,7 +55,9 @@ import {
   UpdateReserveConfigArgs,
 } from '../lib';
 import { aprToApy, KaminoPrices } from '../utils/compat';
-import { FarmAndKey, type FarmState, RewardInfo, fetchMaybeFarmState } from '@kamino-finance/farms-sdk';
+import { type FarmState, fetchMaybeFarmState } from '@kamino-finance/farms-sdk/dist/@codegen/farms/accounts/farmState';
+import { type RewardInfo } from '@kamino-finance/farms-sdk/dist/@codegen/farms/types/rewardInfo';
+import type { FarmAndKey } from '@kamino-finance/farms-sdk/dist/models/FarmAndKey';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { maxBigInt } from '../utils/bigint';
 import { getCreateAccountInstruction, SYSTEM_PROGRAM_ADDRESS } from '@solana-program/system';

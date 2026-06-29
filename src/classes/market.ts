@@ -45,7 +45,7 @@ import {
 } from '../utils';
 import BN from 'bn.js';
 import Decimal from 'decimal.js';
-import { fetchMaybeFarmState } from '@kamino-finance/farms-sdk';
+import { fetchMaybeFarmState } from '@kamino-finance/farms-sdk/dist/@codegen/farms/accounts/farmState';
 import { PROGRAM_ID } from '../@codegen/klend/programId';
 import { Scope, U16_MAX } from '@kamino-finance/scope-sdk';
 import { OraclePrices } from '@kamino-finance/scope-sdk/dist/@codegen/scope/accounts/OraclePrices';

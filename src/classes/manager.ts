@@ -95,7 +95,9 @@ import {
   WithdrawAndBlockReserveIxs,
   WithdrawIxs,
 } from './vault_types';
-import { FarmIncentives, Farms, FarmState } from '@kamino-finance/farms-sdk/dist';
+import { type FarmIncentives } from '@kamino-finance/farms-sdk/dist/models/UserFarm';
+import { Farms } from '@kamino-finance/farms-sdk/dist/Farms';
+import { type FarmState } from '@kamino-finance/farms-sdk/dist/@codegen/farms/accounts/farmState';
 import { getSquadsMultisigAdminsAndThreshold, walletIsSquadsMultisig, WalletType } from '../utils/multisig';
 import { decodeVaultState } from '../utils/vault';
 import { noopSigner } from '../utils/signer';
