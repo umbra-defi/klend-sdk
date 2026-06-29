@@ -1,8 +1,28 @@
 import { Address, Rpc, Slot, SolanaRpcApi } from '@solana/kit';
 import { Decimal } from 'decimal.js';
-import { FarmIncentives, Farms } from '@kamino-finance/farms-sdk';
-import { getFarmIncentives } from '@kamino-finance/farms-sdk/dist/utils/apy';
+import { FarmIncentives, Farms, fetchMaybeFarmState } from '@kamino-finance/farms-sdk';
+import { getTokenPrice } from '@kamino-finance/farms-sdk/dist/utils/price';
 import { DEFAULT_PUBLIC_KEY } from '@kamino-finance/farms-sdk';
+
+async function getFarmIncentives(
+  farmsClient: Farms,
+  farm: Address,
+  stakedTokenPrice: Decimal,
+  stakedTokenMintDecimals: number,
+  pricesMap?: Map<Address, Decimal>
+): Promise<FarmIncentives> {
+  const farmAccount = await fetchMaybeFarmState(farmsClient.getConnection(), farm);
+  if (!farmAccount.exists) {
+    throw new Error(`Farm state not found for farm: ${farm}`);
+  }
+  return farmsClient.calculateFarmIncentivesApy(
+    { farmState: farmAccount.data, key: farm },
+    getTokenPrice,
+    stakedTokenPrice,
+    stakedTokenMintDecimals,
+    pricesMap
+  );
+}
 import { Reserve } from '../@codegen/klend/accounts';
 import { KaminoReserve } from '../lib';
 
